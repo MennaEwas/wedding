@@ -10,6 +10,9 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const STYLES = [
   { id: 'botanical-circle', label: 'إطار مزهر (Botanical)', desc: 'دائري هادئ ومائي' },
+  { id: 'orange-watercolor', label: 'زهور برتقالية (Orange)', desc: 'دافئ بلمسة ذهبية' },
+  { id: 'heart-rose', label: 'قلب وردي (Heart Rose)', desc: 'رومانسي مائي' },
+  { id: 'eternal-blossom', label: 'عروسين (Eternal)', desc: 'رسم توضيحي أنيق' },
   { id: 'classic-gold', label: 'ذهبي كلاسيكي (Gold)', desc: 'دافئ وأنيق' },
   { id: 'royal', label: 'ملكي (Royal)', desc: 'فخم ومذهّب (داكن)' },
   { id: 'minimalist', label: 'بسيط (Minimalist)', desc: 'هادئ وعصري' },
@@ -51,6 +54,9 @@ export default function App() {
   const getDesignerPrompt = (style: string) => {
     const base = "A beautiful vertical blank wedding invitation background design, empty center area for text, no typography, no words, elegant, high quality. ";
     if (style === 'botanical-circle') return base + "Watercolor floral borders with pink dahlias and light blue hydrangea flowers, dark teal and sage green leaves around the edges. The center is a large perfect white circle with a solid sage green outline border. Elegant, soft, bright natural lighting, cream background.";
+    if (style === 'orange-watercolor') return base + "Warm peach watercolor background with fluid marble textures. Gold rectangular frame border. Corner areas filled with dense orange and yellow watercolor roses. Vibrant but elegant.";
+    if (style === 'heart-rose') return base + "Soft pink watercolor background with fine paint speckles. A large hand-painted sage green heart outline in the center. Two dainty pink roses attached to the heart. Eucalyptus leaves at the bottom corners.";
+    if (style === 'eternal-blossom') return base + "Elegant off-white background with gold swirl ornaments in the corners. A beautiful watercolor illustration of a wedding couple from the back on the side. Soft pink cherry blossoms blooming behind them.";
     if (style === 'classic-gold') return base + "Classic white background with shiny gold calligraphic and arabesque filigree borders.";
     if (style === 'royal') return base + "Luxurious dark royal navy blue background with ornate shiny gold geometric Islamic patterns on the corners.";
     if (style === 'minimalist') return base + "Modern minimalist cream off-white background, subtle abstract clean aesthetic, elegant fine lines.";
@@ -326,6 +332,15 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
   if (data.style === 'botanical-circle') {
     containerClasses += "bg-[#fbf7f4]";
     textClasses += "text-[#597a75] items-center justify-center";
+  } else if (data.style === 'orange-watercolor') {
+    containerClasses += "bg-[#fff2e6]";
+    textClasses += "text-[#8c4b2d]";
+  } else if (data.style === 'heart-rose') {
+    containerClasses += "bg-[#fff0f3]";
+    textClasses += "text-[#4a635d]";
+  } else if (data.style === 'eternal-blossom') {
+    containerClasses += "bg-[#fffcf7]";
+    textClasses += "text-[#6e4e5e]";
   } else if (data.style === 'classic-gold') {
     containerClasses += "bg-white border-4 border-double border-[#d4af37]";
     textClasses += "text-[#d4af37]";
@@ -369,6 +384,46 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
                 </filter>
                 <rect width="100%" height="100%" filter="url(#noise)" />
               </svg>
+            </motion.div>
+          )}
+          {data.style === 'orange-watercolor' && (
+            <motion.div key="orange-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none overflow-hidden">
+               <div className="absolute inset-0 opacity-40 mix-blend-multiply bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-100 via-peach-200 to-transparent blur-3xl" />
+               <div className="absolute top-4 left-4 right-4 bottom-4 border-[1px] border-[#d4af37]/40 z-10" />
+               {/* Orange roses placeholders using blobs */}
+               <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
+               <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#ea580c]/30 rounded-full blur-xl" />
+               <div className="absolute -top-12 -left-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
+               <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
+               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
+               <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#ea580c]/30 rounded-full blur-xl" />
+            </motion.div>
+          )}
+          {data.style === 'heart-rose' && (
+            <motion.div key="heart-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none flex items-center justify-center">
+               <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/p6.png')]" />
+               <svg viewBox="0 0 100 100" className="w-64 h-64 text-[#8eb29a]/60 opacity-60">
+                 <path fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" d="M50,30 Q50,10 70,10 T90,30 Q90,50 50,85 Q10,50 10,30 T30,10 T50,30" className="drop-shadow-sm" />
+               </svg>
+               <div className="absolute top-1/2 left-1/2 -translate-x-12 -translate-y-20 w-8 h-8 bg-[#f8b4bc] rounded-full blur-lg" />
+               <div className="absolute top-1/2 left-1/2 translate-x-12 -translate-y-16 w-8 h-8 bg-[#f8b4bc] rounded-full blur-lg" />
+               {/* Green leaves corners */}
+               <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#8eb29a]/20 blur-2xl rounded-tr-full" />
+               <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#8eb29a]/20 blur-2xl rounded-tl-full" />
+            </motion.div>
+          )}
+          {data.style === 'eternal-blossom' && (
+            <motion.div key="eternal-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none overflow-hidden">
+               <div className="absolute top-4 right-4 w-12 h-12 border-t border-r border-[#d4af37]/60 rounded-tr-xl" />
+               <div className="absolute top-4 left-4 w-12 h-12 border-t border-l border-[#d4af37]/60 rounded-tl-xl" />
+               <div className="absolute bottom-4 right-4 w-12 h-12 border-b border-r border-[#d4af37]/60 rounded-br-xl" />
+               <div className="absolute bottom-4 left-4 w-12 h-12 border-b border-l border-[#d4af37]/60 rounded-bl-xl" />
+               {/* Watercolor blobs for couple and flowers */}
+               <div className="absolute bottom-0 left-0 w-64 h-96 bg-gradient-to-tr from-rose-100/40 via-transparent to-transparent blur-3xl" />
+               <div className="absolute bottom-12 left-12 w-32 h-64 bg-neutral-200/40 rounded-t-full blur-3xl rotate-12" />
+               {/* Blossoms */}
+               <div className="absolute bottom-1/4 left-1/3 w-16 h-16 bg-rose-200/60 rounded-full blur-xl" />
+               <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-rose-100/50 rounded-full blur-2xl shadow-inner" />
             </motion.div>
           )}
           {data.style === 'classic-gold' && (
