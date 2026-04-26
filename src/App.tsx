@@ -104,8 +104,7 @@ export default function App() {
         <div className="lg:col-span-6 bg-white rounded-2xl shadow-[0_8px_30px_rgb(231,167,181,0.08)] border border-[#FFF6F8] p-6 lg:p-8 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#3A3A3A] mb-2 flex items-center gap-3">
-              <Sparkles className="w-7 h-7 text-[#E6C07A]" />
-              صانع الدعوات الاحترافي
+              InviteMe
             </h1>
             <p className="text-[#8A8A8A]">قم بتعبئة النموذج أدناه لصياغة نص دعوة زفاف مثالي باستخدام الذكاء الاصطناعي.</p>
           </div>
