@@ -18,6 +18,8 @@ export interface InvitationData {
   style: string;
   fontFamily?: string;
   backgroundImage?: string | null;
+  date: string;
+  time: string;
 }
 
 export async function generateInvitationMessage(data: InvitationData): Promise<string> {
@@ -35,6 +37,8 @@ export async function generateInvitationMessage(data: InvitationData): Promise<s
     - Invitee Personality: ${data.guestPersonality}
     - City: ${data.city}
     - Venue: ${data.venue}
+    - Date: ${data.date}
+    - Time: ${data.time}
     
     Instructions:
     1. The language MUST be beautiful, eloquent Arabic.
@@ -43,7 +47,7 @@ export async function generateInvitationMessage(data: InvitationData): Promise<s
        - If friendly/close (e.g., best friend, youth), use warm, inviting, and joyful language.
     3. Include a welcoming opening on behalf of the host. If appropriate, you can start the core message with something like "يسرنا دعوتكم لحضور حفل زفاف...".
     4. State that they are invited to celebrate the wedding of the bride and groom.
-    5. Mention the venue and city smoothly in the text.
+    5. Mention the venue, city, date, and time smoothly in the text.
     6. Return ONLY the Arabic text paragraphs. No markdown, no English.
   `;
 

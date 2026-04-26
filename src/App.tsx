@@ -5,18 +5,15 @@
 
 import React, { useState, useRef } from 'react';
 import { generateInvitationMessage, InvitationData } from './services/ai';
-import { Loader2, Sparkles, MapPin, Phone, Link as LinkIcon, Copy, Check, Image as ImageIcon, Upload, X, Type } from 'lucide-react';
+import { Loader2, Sparkles, MapPin, Phone, Link as LinkIcon, Copy, Check, Image as ImageIcon, Upload, X, Type, Download, Calendar, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import html2canvas from 'html2canvas';
 
 const STYLES = [
   { id: 'botanical-circle', label: 'إطار مزهر (Botanical)', desc: 'دائري هادئ ومائي' },
-  { id: 'orange-watercolor', label: 'زهور برتقالية (Orange)', desc: 'دافئ بلمسة ذهبية' },
-  { id: 'heart-rose', label: 'قلب وردي (Heart Rose)', desc: 'رومانسي مائي' },
   { id: 'eternal-blossom', label: 'عروسين (Eternal)', desc: 'رسم توضيحي أنيق' },
   { id: 'classic-gold', label: 'ذهبي كلاسيكي (Gold)', desc: 'دافئ وأنيق' },
   { id: 'royal', label: 'ملكي (Royal)', desc: 'فخم ومذهّب (داكن)' },
-  { id: 'minimalist', label: 'بسيط (Minimalist)', desc: 'هادئ وعصري' },
-  { id: 'floral', label: 'وردي (Floral)', desc: 'رومانسي وناعم' },
 ];
 
 const FONTS = [
@@ -42,34 +39,37 @@ export default function App() {
     style: 'botanical-circle',
     fontFamily: 'font-amiri',
     backgroundImage: null,
+    date: '2024-10-20',
+    time: '20:00',
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [generatedText, setGeneratedText] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const [copied, setCopied] = useState(false);
-
-  const getDesignerPrompt = (style: string) => {
-    const base = "A beautiful vertical blank wedding invitation background design, empty center area for text, no typography, no words, elegant, high quality. ";
-    if (style === 'botanical-circle') return base + "Watercolor floral borders with pink dahlias and light blue hydrangea flowers, dark teal and sage green leaves around the edges. The center is a large perfect white circle with a solid sage green outline border. Elegant, soft, bright natural lighting, cream background.";
-    if (style === 'orange-watercolor') return base + "Warm peach watercolor background with fluid marble textures. Gold rectangular frame border. Corner areas filled with dense orange and yellow watercolor roses. Vibrant but elegant.";
-    if (style === 'heart-rose') return base + "Soft pink watercolor background with fine paint speckles. A large hand-painted sage green heart outline in the center. Two dainty pink roses attached to the heart. Eucalyptus leaves at the bottom corners.";
-    if (style === 'eternal-blossom') return base + "Elegant off-white background with gold swirl ornaments in the corners. A beautiful watercolor illustration of a wedding couple from the back on the side. Soft pink cherry blossoms blooming behind them.";
-    if (style === 'classic-gold') return base + "Classic white background with shiny gold calligraphic and arabesque filigree borders.";
-    if (style === 'royal') return base + "Luxurious dark royal navy blue background with ornate shiny gold geometric Islamic patterns on the corners.";
-    if (style === 'minimalist') return base + "Modern minimalist cream off-white background, subtle abstract clean aesthetic, elegant fine lines.";
-    if (style === 'floral') return base + "Soft romantic watercolor blush pink roses and floral borders on a cream background.";
-    return base;
+  const downloadImage = async () => {
+    if (!cardRef.current) return;
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+      const image = canvas.toDataURL("image/jpeg", 0.9);
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = 'wedding-invitation.jpg';
+      link.click();
+    } catch (error) {
+      console.error('Error generating image', error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
-  const designerPrompt = getDesignerPrompt(formData.style);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(designerPrompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^\d\+\-\s()]/g, '');
+    setFormData({ ...formData, [e.target.name]: val });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,159 +97,127 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] flex p-4 lg:p-8 font-cairo" dir="rtl">
+    <div className="min-h-screen bg-[#FFF6F8] flex p-4 lg:p-8 font-cairo" dir="rtl">
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Form Section */}
-        <div className="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-neutral-200 p-6 lg:p-8 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
+        <div className="lg:col-span-6 bg-white rounded-2xl shadow-[0_8px_30px_rgb(231,167,181,0.08)] border border-[#FFF6F8] p-6 lg:p-8 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2 flex items-center gap-3">
-              <Sparkles className="w-7 h-7 text-amber-500" />
+            <h1 className="text-3xl font-bold text-[#3A3A3A] mb-2 flex items-center gap-3">
+              <Sparkles className="w-7 h-7 text-[#E6C07A]" />
               صانع الدعوات الاحترافي
             </h1>
-            <p className="text-neutral-500">قم بتعبئة النموذج أدناه لصياغة نص دعوة زفاف مثالي باستخدام الذكاء الاصطناعي.</p>
+            <p className="text-[#8A8A8A]">قم بتعبئة النموذج أدناه لصياغة نص دعوة زفاف مثالي باستخدام الذكاء الاصطناعي.</p>
           </div>
           
           <form className="space-y-8 flex-1" onSubmit={e => e.preventDefault()}>
             
             {/* العروسين */}
-            <fieldset className="p-5 border border-neutral-100 bg-neutral-50/50 rounded-xl">
-              <legend className="px-3 text-sm font-semibold text-amber-700 bg-amber-50 rounded-md border border-amber-100 py-1 mb-2">العروسين</legend>
+            <fieldset className="p-5 border border-[#A7BFA8]/20 bg-[#FFF6F8]/30 rounded-xl">
+              <legend className="px-3 text-sm font-semibold text-[#3A3A3A] bg-[#A7BFA8]/20 rounded-md border border-[#A7BFA8]/30 py-1 mb-2">العروسين</legend>
               <div className="grid grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">اسم العريس <span className="text-red-500">*</span></label>
-                  <input name="groomName" value={formData.groomName} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition shadow-sm target-form-input" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">اسم العريس <span className="text-[#E7A7B5]">*</span></label>
+                  <input name="groomName" value={formData.groomName} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A] target-form-input" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">اسم العروس <span className="text-red-500">*</span></label>
-                  <input name="brideName" value={formData.brideName} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition shadow-sm target-form-input" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">اسم العروس <span className="text-[#E7A7B5]">*</span></label>
+                  <input name="brideName" value={formData.brideName} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A] target-form-input" />
                 </div>
               </div>
             </fieldset>
 
             {/* الموقع */}
-            <fieldset className="p-5 border border-neutral-100 bg-neutral-50/50 rounded-xl">
-              <legend className="px-3 text-sm font-semibold text-emerald-700 bg-emerald-50 rounded-md border border-emerald-100 py-1 mb-2">المكان والزمان</legend>
+            <fieldset className="p-5 border border-[#A7BFA8]/20 bg-[#FFF6F8]/30 rounded-xl">
+              <legend className="px-3 text-sm font-semibold text-[#3A3A3A] bg-[#A7BFA8]/20 rounded-md border border-[#A7BFA8]/30 py-1 mb-2">المكان والزمان</legend>
               <div className="grid grid-cols-2 gap-5 mb-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">المدينة</label>
-                  <input name="city" value={formData.city} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">المدينة</label>
+                  <input name="city" value={formData.city} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A]" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">اسم القاعة</label>
-                  <input name="venue" value={formData.venue} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">اسم القاعة</label>
+                  <input name="venue" value={formData.venue} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-5 mb-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-[#8A8A8A]">التاريخ</label>
+                  <input type="date" name="date" value={formData.date} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A]" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-[#8A8A8A]">الوقت</label>
+                  <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A]" />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-neutral-700">رابط الموقع (خرائط جوجل)</label>
-                <input name="locationLink" dir="ltr" value={formData.locationLink} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-left font-mono text-sm" />
+                <label className="text-sm font-semibold text-[#8A8A8A]">رابط الموقع (خرائط جوجل)</label>
+                <input name="locationLink" dir="ltr" value={formData.locationLink} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] outline-none transition shadow-sm text-[#3A3A3A] text-left font-mono text-sm" />
               </div>
             </fieldset>
 
             {/* الداعي */}
-            <fieldset className="p-5 border border-neutral-100 bg-neutral-50/50 rounded-xl">
-              <legend className="px-3 text-sm font-semibold text-blue-700 bg-blue-50 rounded-md border border-blue-100 py-1 mb-2">بيانات المُضيف (الداعي)</legend>
+            <fieldset className="p-5 border border-[#A7BFA8]/20 bg-[#FFF6F8]/30 rounded-xl">
+              <legend className="px-3 text-sm font-semibold text-[#3A3A3A] bg-[#A7BFA8]/20 rounded-md border border-[#A7BFA8]/30 py-1 mb-2">بيانات المُضيف (الداعي)</legend>
               <div className="grid grid-cols-2 gap-5 mb-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">الاسم</label>
-                  <input name="hostName" value={formData.hostName} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-blue-500" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">الاسم</label>
+                  <input name="hostName" value={formData.hostName} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] text-[#3A3A3A]" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">صلة القرابة</label>
-                  <input name="hostRelation" placeholder="مثال: والد العريس، أخ العروس" value={formData.hostRelation} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-blue-500" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">صلة القرابة</label>
+                  <input name="hostRelation" placeholder="مثال: والد العريس، أخ العروس" value={formData.hostRelation} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] text-[#3A3A3A]" />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-neutral-700">رقم التواصل (للاستفسار)</label>
-                <input name="contactNumber" dir="ltr" placeholder="+966 5X XXX XXXX" value={formData.contactNumber} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-blue-500 text-left font-mono" />
+                <label className="text-sm font-semibold text-[#8A8A8A]">رقم التواصل (للاستفسار)</label>
+                <input name="contactNumber" dir="ltr" pattern="[\+\- \(\)0-9]*" placeholder="+966 5X XXX XXXX" value={formData.contactNumber} onChange={handlePhoneChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#A7BFA8]/50 focus:border-[#A7BFA8] text-[#3A3A3A] text-left font-mono" />
               </div>
             </fieldset>
 
             {/* الضيف */}
-            <fieldset className="p-5 border border-neutral-100 bg-neutral-50/50 rounded-xl relative overflow-hidden">
+            <fieldset className="p-5 border border-[#C6A9C8]/30 bg-[#FFF6F8]/30 rounded-xl relative overflow-hidden">
               {/* Highlight badge for AI customization */}
-              <div className="absolute top-0 left-0 bg-purple-100 text-purple-700 text-xs px-3 py-1 rounded-br-xl font-bold flex items-center gap-1"><Sparkles className="w-3 h-3"/> تخصيص الذكاء الاصطناعي</div>
+              <div className="absolute top-0 left-0 bg-[#C6A9C8]/20 text-[#3A3A3A] text-xs px-3 py-1 rounded-br-xl font-bold flex items-center gap-1"><Sparkles className="w-3 h-3 text-[#C6A9C8]"/> تخصيص الذكاء الاصطناعي</div>
               
-              <legend className="px-3 text-sm font-semibold text-purple-700 bg-purple-50 rounded-md border border-purple-100 py-1 mb-2">تخصيص الدعوة للضيف</legend>
+              <legend className="px-3 text-sm font-semibold text-[#3A3A3A] bg-[#C6A9C8]/20 rounded-md border border-[#C6A9C8]/30 py-1 mb-2">تخصيص الدعوة للضيف</legend>
               <div className="grid grid-cols-2 gap-5 mb-5 mt-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">اسم المدعو</label>
-                  <input name="guestName" value={formData.guestName} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-purple-500" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">اسم المدعو</label>
+                  <input name="guestName" value={formData.guestName} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#C6A9C8]/50 focus:border-[#C6A9C8] text-[#3A3A3A]" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">العمر التقريبي</label>
-                  <input name="guestAge" type="number" value={formData.guestAge} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-purple-500" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">العمر التقريبي</label>
+                  <input name="guestAge" type="number" value={formData.guestAge} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#C6A9C8]/50 focus:border-[#C6A9C8] text-[#3A3A3A]" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">العلاقة بالضيف (مدير، صديق، عم...)</label>
-                  <input name="guestRelation" value={formData.guestRelation} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-purple-500" />
+                  <label className="text-sm font-semibold text-[#8A8A8A]">العلاقة بالضيف (مدير، صديق، عم...)</label>
+                  <input name="guestRelation" value={formData.guestRelation} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#C6A9C8]/50 focus:border-[#C6A9C8] text-[#3A3A3A]" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-neutral-700">شخصية أو طابع الضيف</label>
-                  <input name="guestPersonality" placeholder="رسمي، فكاهي المستحيل..." value={formData.guestPersonality} onChange={handleChange} className="w-full bg-white border border-neutral-300 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-purple-500" />
-                  <p className="text-xs text-neutral-500">هذا سيغير نبرة التوليد (Tone)</p>
+                  <label className="text-sm font-semibold text-[#8A8A8A]">شخصية أو طابع الضيف</label>
+                  <input name="guestPersonality" placeholder="رسمي، فكاهي المستحيل..." value={formData.guestPersonality} onChange={handleChange} className="w-full bg-white border border-[#A7BFA8]/40 rounded-lg px-4 py-2.5 outline-none transition shadow-sm focus:ring-2 focus:ring-[#C6A9C8]/50 focus:border-[#C6A9C8] text-[#3A3A3A]" />
+                  <p className="text-xs text-[#8A8A8A]">هذا سيغير نبرة التوليد (Tone)</p>
                 </div>
               </div>
             </fieldset>
 
             {/* التصميم والخلفيات */}
-            <fieldset className="p-5 border border-neutral-100 bg-neutral-50/50 rounded-xl">
-              <legend className="px-3 text-sm font-semibold text-rose-700 bg-rose-50 rounded-md border border-rose-100 py-1 mb-2">التصميم والمظهر</legend>
+            <fieldset className="p-5 border border-[#E7A7B5]/20 bg-[#FFF6F8]/30 rounded-xl">
+              <legend className="px-3 text-sm font-semibold text-[#3A3A3A] bg-[#E7A7B5]/20 rounded-md border border-[#E7A7B5]/30 py-1 mb-2">التصميم والمظهر</legend>
               
               <div className="space-y-6">
-                {/* Visual Style */}
-                <div className="space-y-3">
-                  <label className="text-sm font-semibold text-neutral-700 flex items-center gap-1.5"><ImageIcon className="w-4 h-4 text-neutral-500" /> النمط البصري (للعرض والكلمات الدليلية)</label>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {STYLES.map(s => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setFormData({...formData, style: s.id})}
-                        className={`p-3 rounded-xl border text-center transition-all ${
-                          formData.style === s.id 
-                            ? 'border-neutral-900 bg-neutral-900 text-white shadow-md' 
-                            : 'border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50 text-neutral-700'
-                        }`}
-                      >
-                        <div className="font-semibold text-[13px]">{s.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Font Selection */}
-                <div className="space-y-3 border-t border-neutral-200/60 pt-4">
-                  <label className="text-sm font-semibold text-neutral-700 flex items-center gap-1.5"><Type className="w-4 h-4 text-neutral-500" /> نوع الخط العَربي الأساسي</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {FONTS.map(f => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => setFormData({...formData, fontFamily: f.id})}
-                        className={`p-2.5 rounded-lg border text-center transition-all ${f.id} ${
-                          formData.fontFamily === f.id || (!formData.fontFamily && f.id === 'font-amiri')
-                            ? 'border-rose-500 bg-rose-50 text-rose-800 ring-1 ring-rose-500' 
-                            : 'border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50 text-neutral-600'
-                        }`}
-                      >
-                        <div className="font-medium text-base">{f.label}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Custom Background Image */}
-                <div className="space-y-3 border-t border-neutral-200/60 pt-4">
-                  <label className="text-sm font-semibold text-neutral-700 flex items-center gap-1.5"><Upload className="w-4 h-4 text-neutral-500" /> رفع صورة خلفية مخصصة</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-[#8A8A8A] flex items-center gap-1.5"><Upload className="w-4 h-4 text-[#A7BFA8]" /> رفع صورة خلفية مخصصة</label>
                   <div className="flex flex-col gap-3">
                     {formData.backgroundImage ? (
-                      <div className="flex items-center gap-3 bg-white border border-neutral-200 rounded-lg p-2 pr-4 shadow-sm">
+                      <div className="flex items-center gap-3 bg-white border border-[#A7BFA8]/30 rounded-lg p-2 pr-4 shadow-sm">
                         <img src={formData.backgroundImage} alt="Preview" className="w-10 h-10 object-cover rounded-md border border-neutral-100" />
-                        <span className="text-sm text-neutral-600 flex-1 truncate">تم إرفاق صورة مخصصة (تُخفي الزخارف الافتراضية)</span>
-                        <button type="button" onClick={removeImage} className="p-2 hover:bg-red-50 text-red-500 rounded-md transition"><X className="w-4 h-4" /></button>
+                        <span className="text-sm text-[#3A3A3A] flex-1 truncate">تم إرفاق صورة مخصصة (تُخفي الزخارف الافتراضية)</span>
+                        <button type="button" onClick={removeImage} className="p-2 hover:bg-[#FFF6F8] text-[#E7A7B5] rounded-md transition"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
                       <div className="relative">
@@ -260,13 +228,55 @@ export default function App() {
                           ref={fileInputRef}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
-                        <div className="w-full bg-white border border-dashed border-neutral-300 rounded-xl px-4 py-6 flex flex-col items-center justify-center gap-2 text-neutral-500 hover:bg-neutral-50 hover:border-neutral-400 transition">
-                          <Upload className="w-6 h-6 text-neutral-400" />
+                        <div className="w-full bg-white border border-dashed border-[#A7BFA8]/60 rounded-xl px-4 py-6 flex flex-col items-center justify-center gap-2 text-[#8A8A8A] hover:bg-[#FFF6F8]/50 hover:border-[#E7A7B5] transition">
+                          <Upload className="w-6 h-6 text-[#A7BFA8]" />
                           <span className="text-sm font-medium">اضغط هنا أو اسحب الصورة لرفعها</span>
-                          <span className="text-xs text-neutral-400">ستظهر الصورة كخلفية بدلاً من الألوان الافتراضية للنمط</span>
+                          <span className="text-xs text-[#8A8A8A]/70">ستظهر الصورة كخلفية بدلاً من الألوان الافتراضية للنمط</span>
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Visual Style */}
+                <div className="space-y-3 border-t border-[#A7BFA8]/20 pt-4">
+                  <label className="text-sm font-semibold text-[#8A8A8A] flex items-center gap-1.5"><ImageIcon className="w-4 h-4 text-[#A7BFA8]" /> النمط البصري (للعرض والكلمات الدليلية)</label>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                    {STYLES.map(s => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setFormData({...formData, style: s.id})}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          formData.style === s.id 
+                            ? 'border-[#E7A7B5] bg-[#E7A7B5] text-white shadow-md' 
+                            : 'border-[#A7BFA8]/30 bg-white hover:border-[#E7A7B5]/50 hover:bg-[#FFF6F8] text-[#3A3A3A]'
+                        }`}
+                      >
+                        <div className="font-semibold text-[13px]">{s.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Font Selection */}
+                <div className="space-y-3 border-t border-[#A7BFA8]/20 pt-4">
+                  <label className="text-sm font-semibold text-[#8A8A8A] flex items-center gap-1.5"><Type className="w-4 h-4 text-[#A7BFA8]" /> نوع الخط العَربي الأساسي</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {FONTS.map(f => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFormData({...formData, fontFamily: f.id})}
+                        className={`p-2.5 rounded-lg border text-center transition-all ${f.id} ${
+                          formData.fontFamily === f.id || (!formData.fontFamily && f.id === 'font-amiri')
+                            ? 'border-[#E7A7B5] bg-[#E7A7B5]/10 text-[#3A3A3A] ring-1 ring-[#E7A7B5]' 
+                            : 'border-[#A7BFA8]/30 bg-white hover:border-[#E7A7B5]/50 hover:bg-[#FFF6F8] text-[#8A8A8A]'
+                        }`}
+                      >
+                        <div className="font-medium text-base">{f.label}</div>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -275,11 +285,11 @@ export default function App() {
             
           </form>
           
-          <div className="pt-6 mt-6 border-t border-neutral-100 sticky bottom-0 bg-white pb-2">
+          <div className="pt-6 mt-6 border-t border-[#A7BFA8]/20 sticky bottom-0 bg-white pb-2">
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="w-full bg-amber-500 hover:bg-amber-600 focus:ring-4 focus:ring-amber-500/20 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70 shadow-md shadow-amber-500/20"
+              className="w-full bg-[#E7A7B5] hover:bg-[#d696a4] focus:ring-4 focus:ring-[#E7A7B5]/30 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70 shadow-md shadow-[#E7A7B5]/30"
             >
               {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
               {isGenerating ? 'جاري الصياغة...' : 'توليد نَص الدعوة بالذكاء الاصطناعي'}
@@ -289,32 +299,33 @@ export default function App() {
 
         {/* Preview Section */}
         <div className="lg:col-span-6 flex flex-col gap-6">
-          <div className="bg-transparent flex items-center justify-center relative w-full h-[600px] overflow-hidden lg:p-0">
-             <PreviewCard data={formData} text={generatedText} isGenerating={isGenerating} />
+          <div className="bg-transparent flex items-center justify-center relative w-full overflow-hidden lg:p-0">
+             <div ref={cardRef} className="w-full">
+               <PreviewCard data={formData} text={generatedText} isGenerating={isGenerating} />
+             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-5 mt-auto">
-            <h3 className="text-sm font-bold text-neutral-800 mb-2 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-blue-500" />
-              لتوليد الخلفية في (Microsoft Designer أو Midjourney)
-            </h3>
-            <p className="text-xs text-neutral-500 mb-3">انسخ هذا النص باللغة الإنجليزية والصقه في أي مولد صور للحصول على خلفية تتطابق مع نمطك المختار.</p>
-            <div className="relative group">
-              <textarea 
-                readOnly 
-                value={designerPrompt}
-                className="w-full bg-neutral-50/80 border border-neutral-200 rounded-xl p-3 text-sm text-neutral-700 font-mono text-left focus:outline-none resize-none" 
-                rows={4}
-                dir="ltr"
-              />
-              <button 
-                onClick={handleCopy}
-                className="absolute top-2 right-2 p-2 bg-white border border-neutral-200 rounded-lg shadow-sm hover:bg-neutral-50 transition text-neutral-700 flex items-center gap-1.5"
-              >
-                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                <span className="text-xs font-semibold">{copied ? 'تم النسخ!' : 'نسخ النص'}</span>
-              </button>
-            </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-[#A7BFA8]/30 p-5 mt-auto flex flex-col gap-4">
+             <button
+               onClick={downloadImage}
+               disabled={isDownloading}
+               className="w-full bg-[#1e293b] hover:bg-[#334155] focus:ring-4 focus:ring-slate-300 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70 shadow-md"
+             >
+               {isDownloading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+               تحميل الدعوة كصورة (JPG)
+             </button>
+             
+             {formData.locationLink && (
+               <a 
+                 href={formData.locationLink} 
+                 target="_blank" 
+                 rel="noreferrer"
+                 className="w-full bg-[#A7BFA8] hover:bg-[#91aa92] focus:ring-4 focus:ring-[#A7BFA8]/30 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition shadow-md"
+               >
+                 <MapPin className="w-5 h-5" />
+                 رابط خرائط جوجل (Google Maps)
+               </a>
+             )}
           </div>
         </div>
       </div>
@@ -332,12 +343,6 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
   if (data.style === 'botanical-circle') {
     containerClasses += "bg-[#fbf7f4]";
     textClasses += "text-[#597a75] items-center justify-center";
-  } else if (data.style === 'orange-watercolor') {
-    containerClasses += "bg-[#fff2e6]";
-    textClasses += "text-[#8c4b2d]";
-  } else if (data.style === 'heart-rose') {
-    containerClasses += "bg-[#fff0f3]";
-    textClasses += "text-[#4a635d]";
   } else if (data.style === 'eternal-blossom') {
     containerClasses += "bg-[#fffcf7]";
     textClasses += "text-[#6e4e5e]";
@@ -347,12 +352,6 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
   } else if (data.style === 'royal') {
     containerClasses += "bg-[#111c2e]";
     textClasses += "text-[#e5c158]";
-  } else if (data.style === 'minimalist') {
-    containerClasses += "bg-[#faf9f6]";
-    textClasses += "text-[#333333]";
-  } else if (data.style === 'floral') {
-    containerClasses += "bg-[#fdf8e1]";
-    textClasses += "text-[#5e4b3c]";
   }
 
   return (
@@ -384,32 +383,6 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
                 </filter>
                 <rect width="100%" height="100%" filter="url(#noise)" />
               </svg>
-            </motion.div>
-          )}
-          {data.style === 'orange-watercolor' && (
-            <motion.div key="orange-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none overflow-hidden">
-               <div className="absolute inset-0 opacity-40 mix-blend-multiply bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-100 via-peach-200 to-transparent blur-3xl" />
-               <div className="absolute top-4 left-4 right-4 bottom-4 border-[1px] border-[#d4af37]/40 z-10" />
-               {/* Orange roses placeholders using blobs */}
-               <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
-               <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#ea580c]/30 rounded-full blur-xl" />
-               <div className="absolute -top-12 -left-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
-               <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
-               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-[#f59e0b]/40 rounded-full blur-2xl" />
-               <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#ea580c]/30 rounded-full blur-xl" />
-            </motion.div>
-          )}
-          {data.style === 'heart-rose' && (
-            <motion.div key="heart-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none flex items-center justify-center">
-               <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/p6.png')]" />
-               <svg viewBox="0 0 100 100" className="w-64 h-64 text-[#8eb29a]/60 opacity-60">
-                 <path fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" d="M50,30 Q50,10 70,10 T90,30 Q90,50 50,85 Q10,50 10,30 T30,10 T50,30" className="drop-shadow-sm" />
-               </svg>
-               <div className="absolute top-1/2 left-1/2 -translate-x-12 -translate-y-20 w-8 h-8 bg-[#f8b4bc] rounded-full blur-lg" />
-               <div className="absolute top-1/2 left-1/2 translate-x-12 -translate-y-16 w-8 h-8 bg-[#f8b4bc] rounded-full blur-lg" />
-               {/* Green leaves corners */}
-               <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#8eb29a]/20 blur-2xl rounded-tr-full" />
-               <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#8eb29a]/20 blur-2xl rounded-tl-full" />
             </motion.div>
           )}
           {data.style === 'eternal-blossom' && (
@@ -447,19 +420,6 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
               <div className="absolute bottom-6 right-6 w-12 h-12 border-b-2 border-r-2 border-[#e5c158]/60" />
               <div className="absolute bottom-6 left-6 w-12 h-12 border-b-2 border-l-2 border-[#e5c158]/60" />
             </motion.div>
-          )}
-          {data.style === 'floral' && (
-            <motion.div key="floral-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none opacity-30">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full text-[#8c6d59]/40 fill-current">
-                  <path d="M0,0 Q30,40 0,60 Q40,30 60,0 Z M100,100 Q70,60 100,40 Q60,70 40,100 Z" />
-                </svg>
-            </motion.div>
-          )}
-          {data.style === 'minimalist' && (
-              <motion.div key="minimal-bg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="absolute inset-0 pointer-events-none">
-                <div className="absolute bottom-10 left-10 w-32 h-32 bg-neutral-200/50 rounded-full blur-3xl" />
-                <div className="absolute top-20 right-10 w-40 h-40 bg-neutral-200/30 rounded-full blur-3xl" />
-              </motion.div>
           )}
         </AnimatePresence>
       )}
@@ -505,11 +465,31 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
                 <MapPin className={`${data.style === 'botanical-circle' ? 'w-3 h-3' : 'w-4 h-4'} opacity-70`} />
                 <span>{data.venue}، {data.city}</span>
              </div>
-             <div className="flex justify-center gap-5">
+             
+             {(data.date || data.time) && (
+               <div className="flex justify-center gap-4">
+                 {data.date && (
+                   <div className="flex items-center gap-1 opacity-80 flex-row-reverse" dir="ltr">
+                     <span className={`${data.style === 'botanical-circle' ? 'text-xs' : ''}`}>{data.date}</span>
+                     <Calendar className={`${data.style === 'botanical-circle' ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
+                   </div>
+                 )}
+                 {data.time && (
+                   <div className="flex items-center gap-1 opacity-80 flex-row-reverse" dir="ltr">
+                     <span className={`${data.style === 'botanical-circle' ? 'text-xs' : ''}`}>{data.time}</span>
+                     <Clock className={`${data.style === 'botanical-circle' ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
+                   </div>
+                 )}
+               </div>
+             )}
+
+             <div className="flex justify-center gap-5 mt-1">
+                {/* 
                 <a href={data.locationLink} target="_blank" rel="noreferrer" className="flex items-center gap-1 opacity-80 hover:opacity-100 flex-row-reverse">
                    <LinkIcon className={`${data.style === 'botanical-circle' ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
                    <span className="underline underline-offset-4 decoration-current/30">الموقع</span>
                 </a>
+                */}
                 <div className="flex items-center gap-1 opacity-80 flex-row-reverse" dir="ltr">
                    <span className={`${data.style === 'botanical-circle' ? 'text-xs' : ''}`}>{data.contactNumber}</span>
                    <Phone className={`${data.style === 'botanical-circle' ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
