@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { generateInvitationMessage, InvitationData } from './services/ai';
-import { Loader2, Sparkles, MapPin, Phone, Link as LinkIcon, Copy, Check, Image as ImageIcon, Upload, X, Type, Download, Calendar, Clock } from 'lucide-react';
+import { generateInvitationMessage, generateInvitationDesign, InvitationData } from './services/ai';
+import { Loader2, Sparkles, MapPin, Phone, Link as LinkIcon, Copy, Check, Image as ImageIcon, Upload, X, Type, Download, Calendar, Clock, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
 
@@ -48,7 +48,22 @@ export default function App() {
 
   const [generatedText, setGeneratedText] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDesigning, setIsDesigning] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleGenerateDesign = async () => {
+    setIsDesigning(true);
+    try {
+      const designUrl = await generateInvitationDesign(formData);
+      if (designUrl) {
+        setFormData(prev => ({ ...prev, backgroundImage: designUrl }));
+      }
+    } catch (error) {
+      console.error('Design generation failed', error);
+    } finally {
+      setIsDesigning(false);
+    }
+  };
 
   const downloadImage = async () => {
     if (!cardRef.current) return;
@@ -97,11 +112,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF6F8] flex p-4 lg:p-8 font-cairo" dir="rtl">
-      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="min-h-screen bg-[#FFF6F8] flex p-4 md:p-6 lg:p-8 font-cairo" dir="rtl">
+      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
         
         {/* Form Section */}
-        <div className="lg:col-span-6 bg-white rounded-2xl shadow-[0_8px_30px_rgb(231,167,181,0.08)] border border-[#FFF6F8] p-6 lg:p-8 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
+        <div className="md:col-span-1 bg-white rounded-2xl shadow-[0_8px_30px_rgb(231,167,181,0.08)] border border-[#FFF6F8] p-6 lg:p-8 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#3A3A3A] mb-2 flex items-center gap-3">
               InviteMe
@@ -209,8 +224,19 @@ export default function App() {
               
               <div className="space-y-6">
                 {/* Custom Background Image */}
-                <div className="space-y-3">
-                  <label className="text-sm font-semibold text-[#8A8A8A] flex items-center gap-1.5"><Upload className="w-4 h-4 text-[#A7BFA8]" /> رفع صورة خلفية مخصصة</label>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-[#8A8A8A] flex items-center gap-1.5"><Upload className="w-4 h-4 text-[#A7BFA8]" /> مظهر الخلفية</label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateDesign}
+                      disabled={isDesigning}
+                      className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-[#E7A7B5]/10 text-[#E7A7B5] hover:bg-[#E7A7B5]/20 rounded-full transition-all font-bold border border-[#E7A7B5]/20 disabled:opacity-50"
+                    >
+                      {isDesigning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                      ابتكار تصميم ذكي (AI Art)
+                    </button>
+                  </div>
                   <div className="flex flex-col gap-3">
                     {formData.backgroundImage ? (
                       <div className="flex items-center gap-3 bg-white border border-[#A7BFA8]/30 rounded-lg p-2 pr-4 shadow-sm">
@@ -297,14 +323,14 @@ export default function App() {
         </div>
 
         {/* Preview Section */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
-          <div className="bg-transparent flex items-center justify-center relative w-full overflow-hidden lg:p-0">
+        <div className="md:col-span-1 flex flex-col gap-6 md:h-[calc(100vh-4rem)]">
+          <div className="bg-transparent flex items-center justify-center relative w-full overflow-y-auto lg:p-0 flex-1 custom-scrollbar">
              <div ref={cardRef} className="w-full">
                <PreviewCard data={formData} text={generatedText} isGenerating={isGenerating} />
              </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-[#A7BFA8]/30 p-5 mt-auto flex flex-col gap-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#A7BFA8]/30 p-5 flex flex-col gap-4">
              <button
                onClick={downloadImage}
                disabled={isDownloading}

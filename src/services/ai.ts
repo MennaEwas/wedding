@@ -53,12 +53,49 @@ export async function generateInvitationMessage(data: InvitationData): Promise<s
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
     });
     return response.text || "حدث خطأ أثناء توليد النص.";
   } catch (error) {
     console.error("Error generating text:", error);
     return "عذراً، حدث خطأ في النظام.";
+  }
+}
+
+export async function generateInvitationDesign(data: InvitationData): Promise<string | null> {
+  const designPrompt = `A high-quality, elegant vertical wedding invitation background. 
+    Style: ${data.style}. 
+    The background should be artistic with floral or geometric patterns around the edges, but the center MUST be clean and empty (solid light color or very subtle texture) to allow for text overlay. 
+    No text, no letters, no typography. 
+    High resolution, professional design. inspired by colors suitable for a wedding.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            text: designPrompt,
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "9:16",
+        },
+      },
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        const base64EncodeString: string = part.inlineData.data;
+        return `data:image/png;base64,${base64EncodeString}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error generating design:", error);
+    return null;
   }
 }
