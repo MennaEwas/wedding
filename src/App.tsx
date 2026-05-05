@@ -4,10 +4,10 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { toJpeg } from 'html-to-image';
 import { generateInvitationMessage, generateInvitationDesign, InvitationData } from './services/ai';
 import { Loader2, Sparkles, MapPin, Phone, Link as LinkIcon, Copy, Check, Image as ImageIcon, Upload, X, Type, Download, Calendar, Clock, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import html2canvas from 'html2canvas';
 
 const STYLES = [
   { id: 'botanical-circle', label: 'إطار مزهر (Botanical)', desc: 'دائري هادئ ومائي' },
@@ -39,11 +39,13 @@ export default function App() {
     style: 'botanical-circle',
     fontFamily: 'font-amiri',
     backgroundImage: null,
+    couplePhoto: null,
     date: '2024-10-20',
     time: '20:00',
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const [generatedText, setGeneratedText] = useState<string>('');
@@ -68,15 +70,35 @@ export default function App() {
   const downloadImage = async () => {
     if (!cardRef.current) return;
     setIsDownloading(true);
+    
+    // Select the actual card inside the ref wrapper
+    const cardElement = cardRef.current.querySelector('.invitation-card-container') as HTMLElement;
+    if (!cardElement) {
+      setIsDownloading(false);
+      return;
+    }
+
     try {
-      const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
-      const image = canvas.toDataURL("image/jpeg", 0.9);
+      const dataUrl = await toJpeg(cardElement, {
+        quality: 0.95,
+        pixelRatio: 3,
+        backgroundColor: '#ffffff',
+        style: {
+          boxShadow: 'none',
+          transform: 'none',
+        }
+      });
+
       const link = document.createElement('a');
-      link.href = image;
-      link.download = 'wedding-invitation.jpg';
+      link.href = dataUrl;
+      link.download = `InviteMe-${formData.groomName}-${formData.brideName}.jpg`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+
     } catch (error) {
       console.error('Error generating image', error);
+      alert('حدث خطأ أثناء تحميل الصورة. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsDownloading(false);
     }
@@ -98,6 +120,19 @@ export default function App() {
   const removeImage = () => {
     setFormData({ ...formData, backgroundImage: null });
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setFormData({ ...formData, couplePhoto: url });
+    }
+  };
+
+  const removePhoto = () => {
+    setFormData({ ...formData, couplePhoto: null });
+    if (photoInputRef.current) photoInputRef.current.value = '';
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -223,6 +258,34 @@ export default function App() {
               <legend className="px-3 text-sm font-semibold text-[#3A3A3A] bg-[#E7A7B5]/20 rounded-md border border-[#E7A7B5]/30 py-1 mb-2">التصميم والمظهر</legend>
               
               <div className="space-y-6">
+                {/* Couple Photo Upload */}
+                <div className="space-y-4">
+                  <label className="text-sm font-semibold text-[#8A8A8A] flex items-center gap-1.5"><ImageIcon className="w-4 h-4 text-[#A7BFA8]" /> صورة العروسين (اختياري)</label>
+                  <div className="flex flex-col gap-3">
+                    {formData.couplePhoto ? (
+                      <div className="flex items-center gap-3 bg-white border border-[#A7BFA8]/30 rounded-lg p-2 pr-4 shadow-sm">
+                        <img src={formData.couplePhoto} alt="Couple" className="w-10 h-10 object-cover rounded-full border border-neutral-100" />
+                        <span className="text-sm text-[#3A3A3A] flex-1 truncate">تم إرفاق صورة العروسين</span>
+                        <button type="button" onClick={removePhoto} className="p-2 hover:bg-[#FFF6F8] text-[#E7A7B5] rounded-md transition"><X className="w-4 h-4" /></button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handlePhotoUpload} 
+                          ref={photoInputRef}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="w-full bg-white border border-dashed border-[#A7BFA8]/60 rounded-xl px-4 py-4 flex flex-col items-center justify-center gap-1.5 text-[#8A8A8A] hover:bg-[#FFF6F8]/50 hover:border-[#E7A7B5] transition">
+                          <Upload className="w-5 h-5 text-[#A7BFA8]" />
+                          <span className="text-xs font-medium">رفع صورة للعروسين (تظهر في مقدمة البطاقة)</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Custom Background Image */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -360,7 +423,7 @@ export default function App() {
 
 function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text: string, isGenerating: boolean }) {
   // Styles logic based on selected style
-  let containerClasses = "w-full max-w-md aspect-[3/4] relative mx-auto shadow-2xl overflow-hidden rounded-sm transition-all duration-700 ease-in-out ";
+  let containerClasses = "invitation-card-container w-full max-w-md aspect-[3/4] relative mx-auto shadow-2xl overflow-hidden rounded-sm transition-all duration-700 ease-in-out ";
   let textClasses = "z-10 relative flex flex-col h-full text-center px-8 py-12 ";
   
   const currentFont = data.fontFamily || 'font-amiri';
@@ -383,7 +446,13 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
     <div className={containerClasses}>
       {/* Custom Uploaded Background */}
       {data.backgroundImage && (
-        <img src={data.backgroundImage} alt="Custom Background" className="absolute inset-0 w-full h-full object-cover z-0" />
+        <img 
+          src={data.backgroundImage} 
+          alt="Custom Background" 
+          className="absolute inset-0 w-full h-full object-cover z-0" 
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
       )}
 
       {/* Background decorations based on style (Only show if no custom image is uploaded) */}
@@ -454,11 +523,25 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
       <div className={textClasses}>
         
         {data.style === 'botanical-circle' && (
-          <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] aspect-square ${data.backgroundImage ? 'bg-white/80 backdrop-blur-sm' : 'bg-white'} rounded-full border-[3px] border-[#81a69e] shadow-[0_4px_30px_rgba(0,0,0,0.05)] z-0`} />
+          <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] aspect-square ${data.backgroundImage ? 'bg-white/90' : 'bg-white'} rounded-full border-[3px] border-[#81a69e] shadow-[0_4px_30px_rgba(0,0,0,0.05)] z-0`} />
         )}
 
         <div className={`flex-col items-center justify-center gap-4 relative z-10 ${data.style === 'botanical-circle' ? 'flex w-[80%] aspect-square py-6 h-auto' : 'flex-1 flex h-full'}`}>
            
+           {data.couplePhoto && (
+             <div className="mb-4">
+               <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-lg overflow-hidden mx-auto">
+                 <img 
+                    src={data.couplePhoto} 
+                    alt="Couple" 
+                    className="w-full h-full object-cover" 
+                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
+                 />
+               </div>
+             </div>
+           )}
+
            <div className={`space-y-1 ${data.style === 'botanical-circle' ? 'mb-2 text-center' : 'mb-4'}`}>
              {(data.style === 'royal' || data.style === 'classic-gold') && <div className={`text-sm font-ruqaa mb-3 tracking-widest ${data.style === 'classic-gold' ? 'text-[#d4af37]' : 'text-[#e5c158]/80'}`}>بسم الله الرحمن الرحيم</div>}
              <h2 className={`${currentFont} font-bold tracking-tight mb-2 ${data.style === 'classic-gold' ? 'drop-shadow-sm text-5xl' : data.style === 'botanical-circle' ? 'text-4xl' : 'text-5xl'}`}>

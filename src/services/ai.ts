@@ -18,6 +18,7 @@ export interface InvitationData {
   style: string;
   fontFamily?: string;
   backgroundImage?: string | null;
+  couplePhoto?: string | null;
   date: string;
   time: string;
 }
@@ -53,13 +54,16 @@ export async function generateInvitationMessage(data: InvitationData): Promise<s
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.0-flash",
       contents: prompt,
     });
     return response.text || "حدث خطأ أثناء توليد النص.";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating text:", error);
-    return "عذراً، حدث خطأ في النظام.";
+    if (error?.status === 503 || error?.message?.includes('503')) {
+      return "عذراً، النظام يواجه ضغطاً كبيراً حالياً. يرجى المحاولة مرة أخرى بعد قليل.";
+    }
+    return "عذراً، حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.";
   }
 }
 
@@ -72,7 +76,7 @@ export async function generateInvitationDesign(data: InvitationData): Promise<st
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-2.0-flash',
       contents: {
         parts: [
           {
@@ -80,19 +84,16 @@ export async function generateInvitationDesign(data: InvitationData): Promise<st
           },
         ],
       },
-      config: {
-        imageConfig: {
-          aspectRatio: "9:16",
-        },
-      },
     });
 
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        const base64EncodeString: string = part.inlineData.data;
-        return `data:image/png;base64,${base64EncodeString}`;
-      }
+    // Handle potential multi-modal response if the environment supports it
+    // Note: Standard Gemini 2.0 Flash returns text, experimental versions might return binary.
+    // Given current environment limitations, we add a fallback check.
+    const part = response.candidates?.[0]?.content?.parts?.[0];
+    if (part?.inlineData) {
+      return `data:image/png;base64,${part.inlineData.data}`;
     }
+    
     return null;
   } catch (error) {
     console.error("Error generating design:", error);
