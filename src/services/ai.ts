@@ -54,7 +54,7 @@ export async function generateInvitationMessage(data: InvitationData): Promise<s
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: prompt,
     });
     return response.text || "حدث خطأ أثناء توليد النص.";
@@ -70,28 +70,40 @@ export async function generateInvitationMessage(data: InvitationData): Promise<s
 export async function generateInvitationDesign(data: InvitationData): Promise<string | null> {
   const designPrompt = `A high-quality, elegant vertical wedding invitation background. 
     Style: ${data.style}. 
+    ${data.couplePhoto ? 'Maintain an elegant, artistic theme that complements the provided photo of the bride/couple. Incorporate similar colors and floral/geometric patterns.' : ''}
     The background should be artistic with floral or geometric patterns around the edges, but the center MUST be clean and empty (solid light color or very subtle texture) to allow for text overlay. 
     No text, no letters, no typography. 
     High resolution, professional design. inspired by colors suitable for a wedding.`;
 
   try {
+    const parts: any[] = [{ text: designPrompt }];
+
+    if (data.couplePhoto && data.couplePhoto.startsWith('data:')) {
+      const base64Data = data.couplePhoto.split(',')[1];
+      parts.push({
+        inlineData: {
+          data: base64Data,
+          mimeType: "image/png"
+        }
+      });
+    }
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash-image',
       contents: {
-        parts: [
-          {
-            text: designPrompt,
-          },
-        ],
+        parts: parts,
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "9:16",
+        },
       },
     });
 
-    // Handle potential multi-modal response if the environment supports it
-    // Note: Standard Gemini 2.0 Flash returns text, experimental versions might return binary.
-    // Given current environment limitations, we add a fallback check.
-    const part = response.candidates?.[0]?.content?.parts?.[0];
-    if (part?.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:image/png;base64,${part.inlineData.data}`;
+      }
     }
     
     return null;

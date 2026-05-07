@@ -529,16 +529,29 @@ function PreviewCard({ data, text, isGenerating }: { data: InvitationData, text:
         <div className={`flex-col items-center justify-center gap-4 relative z-10 ${data.style === 'botanical-circle' ? 'flex w-[80%] aspect-square py-6 h-auto' : 'flex-1 flex h-full'}`}>
            
            {data.couplePhoto && (
-             <div className="mb-4">
-               <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-lg overflow-hidden mx-auto">
-                 <img 
-                    src={data.couplePhoto} 
-                    alt="Couple" 
-                    className="w-full h-full object-cover" 
-                    crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
-                 />
+             <div className="mb-6 relative group">
+               {/* Decorative background for the photo to 'merge' it better */}
+               <div className="absolute -inset-1.5 bg-gradient-to-tr from-[#E7A7B5] to-[#A7BFA8] rounded-full blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+               
+               <div className="w-28 h-28 md:w-36 md:h-36 rounded-full relative z-10 p-1 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+                 <div className="w-full h-full rounded-full overflow-hidden border-2 border-[#FFF6F8]">
+                   <img 
+                      src={data.couplePhoto} 
+                      alt="Couple" 
+                      className="w-full h-full object-cover" 
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                   />
+                 </div>
                </div>
+               
+               {/* Small floating accents to help it blend with 'botanical' or 'floral' styles */}
+               {data.style === 'botanical-circle' && (
+                 <>
+                   <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#A7BFA8]/40 rounded-full blur-md" />
+                   <div className="absolute -bottom-2 -left-1 w-8 h-8 bg-[#E7A7B5]/30 rounded-full blur-lg" />
+                 </>
+               )}
              </div>
            )}
 
